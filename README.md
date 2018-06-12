@@ -2,6 +2,14 @@
 
 C++ source for [Shougo/deoplete\.nvim: Dark powered asynchronous completion framework for neovim/Vim8]( https://github.com/Shougo/deoplete.nvim )
 
+## TODO
+* 設定項目を増やす
+	* `-std`のオプション
+	* localなプロジェクトに対する設定(e.g. 設定ファイルの自動読込)
+* 他の`deoplete-xxx`を参考にリファクタリング
+* 無駄な補完処理が走らないように，キャッシュを有効利用
+* 自動pch作成機能
+
 ## overview
 vimのカレントディレクトリに，`*.pch`が存在するときに，補完を行う
 
