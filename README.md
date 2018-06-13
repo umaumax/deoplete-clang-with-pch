@@ -32,7 +32,8 @@ let g:deoplete#sources#clang_with_pch#pch_pathes = []
 ## PCHの作成と利用について
 1. `#include`のみのヘッダファイルを作成
 	* 例えば，対象cppファイルに対して，`grep '#include' | grep -v '//'`
-1. ```clang++ -cc1 -x c++-header -emit-pch -std=c++11 -stdlib=libc++ header.h -o header.h.pch```
+1. pch作成
+	* ```clang++ -cc1 -x c++-header -emit-pch -std=c++11 -stdlib=libc++ header.h -o header.h.pch```
 1. 利用
 	* build: ```clang++ -cc1 -include-pch header.h.pch -std=c++11 test.cpp -o test```
 	* 補完: ```clang++ -cc1 -include-pch header.h.pch -fsyntax-only -code-completion-at=test:<line>:<col> -std=c++11 test.cpp```
@@ -45,4 +46,26 @@ let g:deoplete#sources#clang_with_pch#pch_pathes = []
 ちなみに，PCHを利用しない補完では，`-Xclang`オプションで利用可能
 ```
 clang++ -Xclang -fsyntax-only -Xclang -code-completion-at=test.cpp:<line>:<col> -std=c++11 test.cpp -c
+```
+
+----
+
+ちなみに，Ubuntu16.04では，`-cc1`のオプション利用時にinclude pathを別途追加する必要がある
+e.g.
+```
+clang++ -cc1 -emit-pch -x c++-header -std=c++11 -stdlib=libstdc++ $target -o $target.pch \
+	-I/usr/include/clang/5.0.0/include \
+	-I/usr/include \
+	-I/usr/include/c++/5.4.0 \
+	-I/usr/include/x86_64-linux-gnu/c++/5.4.0
+```
+上記のinclude pathは下記の`-Xclang`コマンド版を参考するとよい
+`-Xclang`版では余計なオプションが軒を連ねるので，確認後`-cc1`で生成し直す
+```
+clang++ -Xclang -emit-pch -x c++-header -std=c++11 header.h -o header.h.pch
+```
+なお，補完時に必要なinclude pathは減っていた
+```
+clang++ -cc1 -include-pch $target.pch -fsyntax-only -code-completion-at=$target:$line:$col -std=c++11 $target \
+	-I/usr/include/c++/5.4.0
 ```
