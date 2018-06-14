@@ -93,16 +93,28 @@ class Source(Base):
         self.cnt += 1
 #         print('[debug]:{0} {1}'.format(self.cnt, cmds))
 
+        strip_right = (lambda text, suffix: text if not text.endswith(suffix) else text[:len(text) - len(suffix)])
+        strip_left = (lambda text, prefix: text if not text.startswith(prefix) else text[len(prefix):])
         try:
             d = subprocess.check_output(
                 cmds,
                 stderr=subprocess.STDOUT,
                 shell=False)
-            for line in str(d).split("\\n"):
-                line = line.split('COMPLETION: ', 1).pop()
+            # NOTE: pythonではbytesをstrに変換する際にb''に挟まれる?
+            for line in strip_right(strip_left(str(d), "b'"), "'").split("\\n"):
+                line = strip_left(line, 'COMPLETION: ')
                 tmp = line.split(' : ')
+                # NOTE: [#.*#]でmatch groupし，1番目がfullの返り値，間に関数の引数，2番目が所属メソッド
                 if len(tmp) == 2:
-                    result.append({'dup': 1, 'word': tmp[0], 'menu': tmp[1]})
+                    line = strip_right(line, tmp[0])
+                    tmp[1] = strip_right(tmp[1], tmp[0])
+                    # fot xxx (HIDDEN)
+                    tmp[1] = re.sub('].*' + tmp[0].split(' ')[0], ']', tmp[1])
+                    tmp[1] = tmp[1].replace('#', ' ')
+                    tmp[1] = tmp[1].replace('[', '')
+                    tmp[1] = tmp[1].replace(']', '')
+#                 NOTE: menuは文字数制限があるが，abbrは文字数制限が長い?
+                    result.append({'dup': 1, 'word': tmp[0], 'abbr': tmp[0] + ':' + tmp[1], 'menu': tmp[1]})
         except subprocess.CalledProcessError as e:
             # TODO: error handling
             result = [
