@@ -60,6 +60,26 @@ class Source(Base):
         m = re.search(r'\w*$', context['input'])
         return m.start() if m else -1
 
+    def parse_clang_output_line(self, line):
+        strip_left = (lambda text, prefix: text if not text.startswith(prefix) else text[len(prefix):])
+        strip_right = (lambda text, suffix: text if not text.endswith(suffix) else text[:len(text) - len(suffix)])
+        strip = (lambda text, prefix, suffix: strip_right(strip_left(text, prefix), suffix))
+        line = strip_left(line, 'COMPLETION: ')
+        line = strip_right(line, '\n')
+        name = line.split(' : ')[0]
+        name = strip_right(name, ' (HIDDEN)')
+        m = re.search(r"(\[#.*?#\])(([^\[\]]|\[[^#])*)(\[#(.*)#\])?$", line)
+        ret = {}
+        if m:
+            ret_type = strip(m.group(1), '[#', '#]')
+            args_type = m.group(2)
+            args_type = args_type.replace('<#', '')
+            args_type = args_type.replace('#>', '')
+            method_source_info = strip(m.group(4) if m.group(4) else '', '[# ', '#]')
+            method_source_info = strip_right(method_source_info, ':' + name)
+            ret = {'dup': 1, 'word': name, 'abbr': args_type, 'kind': ret_type, 'menu': method_source_info}
+        return ret
+
     def get_completion(self, line, column, buf):
         column += 1
         # NOTE: delete means : no auto delete
@@ -100,21 +120,10 @@ class Source(Base):
                 cmds,
                 stderr=subprocess.STDOUT,
                 shell=False)
-            # NOTE: pythonではbytesをstrに変換する際にb''に挟まれる?
-            for line in strip_right(strip_left(str(d), "b'"), "'").split("\\n"):
-                line = strip_left(line, 'COMPLETION: ')
-                tmp = line.split(' : ')
-                # NOTE: [#.*#]でmatch groupし，1番目がfullの返り値，間に関数の引数，2番目が所属メソッド
-                if len(tmp) == 2:
-                    line = strip_right(line, tmp[0])
-                    tmp[1] = strip_right(tmp[1], tmp[0])
-                    # fot xxx (HIDDEN)
-                    tmp[1] = re.sub('].*' + tmp[0].split(' ')[0], ']', tmp[1])
-                    tmp[1] = tmp[1].replace('#', ' ')
-                    tmp[1] = tmp[1].replace('[', '')
-                    tmp[1] = tmp[1].replace(']', '')
-#                 NOTE: menuは文字数制限があるが，abbrは文字数制限が長い?
-                    result.append({'dup': 1, 'word': tmp[0], 'abbr': tmp[0] + ':' + tmp[1], 'menu': tmp[1]})
+            for line in d.decode('utf-8').splitlines():
+                ret = self.parse_clang_output_line(line)
+                if ret:
+                    result.append(ret)
         except subprocess.CalledProcessError as e:
             # TODO: error handling
             result = [
