@@ -120,6 +120,10 @@ class Source(Base):
                 cmds,
                 stderr=subprocess.STDOUT,
                 shell=False)
+            # COMPLETION: Context() : [#clang::ASTContext *const#]
+            # COMPLETION: MatchResult(const BoundNodes &Nodes, clang::ASTContext *Context) : [#MatchResult#]
+            # COMPLETION: Nodes() : [#const BoundNodes#]
+            # COMPLETION: SourceManager() : [#clang::SourceManager *const#]
             for line in d.decode('utf-8').splitlines():
                 ret = self.parse_clang_output_line(line)
                 if ret:
