@@ -51,6 +51,7 @@ clang++ -Xclang -fsyntax-only -Xclang -code-completion-at=test.cpp:<line>:<col> 
 ----
 
 ちなみに，Ubuntu16.04では，`-cc1`のオプション利用時にinclude pathを別途追加する必要がある
+
 e.g.
 ```
 clang++ -cc1 -emit-pch -x c++-header -std=c++11 -stdlib=libstdc++ $target -o $target.pch \
@@ -59,12 +60,17 @@ clang++ -cc1 -emit-pch -x c++-header -std=c++11 -stdlib=libstdc++ $target -o $ta
 	-I/usr/include/c++/5.4.0 \
 	-I/usr/include/x86_64-linux-gnu/c++/5.4.0
 ```
+
 上記のinclude pathは下記の`-Xclang`コマンド版を参考するとよい
+
 `-Xclang`版では余計なオプションが軒を連ねるので，確認後`-cc1`で生成し直す
+
 ```
 clang++ -Xclang -emit-pch -x c++-header -std=c++11 header.h -o header.h.pch
 ```
+
 なお，補完時に必要なinclude pathは減っていた
+
 ```
 clang++ -cc1 -include-pch $target.pch -fsyntax-only -code-completion-at=$target:$line:$col -std=c++11 $target \
 	-I/usr/include/c++/5.4.0
