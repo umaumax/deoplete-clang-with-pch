@@ -105,8 +105,10 @@ class Source(Base):
             ['-std=c++11'] +\
             [tmp_file_path]
 
-        result = []
+        default_include_path = '.'
         include_pathes = self.include_pathes
+        if default_include_path not in include_pathes:
+            include_pathes.append(default_include_path)
         for include_path in include_pathes:
             cmds.append('-I' + include_path)
 
@@ -115,6 +117,7 @@ class Source(Base):
 
         strip_right = (lambda text, suffix: text if not text.endswith(suffix) else text[:len(text) - len(suffix)])
         strip_left = (lambda text, prefix: text if not text.startswith(prefix) else text[len(prefix):])
+        result = []
         try:
             d = subprocess.check_output(
                 cmds,
@@ -131,7 +134,7 @@ class Source(Base):
         except subprocess.CalledProcessError as e:
             # TODO: error handling
             result = [
-                #                 'error',
+                '__clang-parse-error__',
                 #                 e.returncode,
                 #                 e.cmd,
                 #                 e.output,
