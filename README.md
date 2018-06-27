@@ -11,7 +11,8 @@ C++ source for [Shougo/deoplete\.nvim: Dark powered asynchronous completion fram
 * 自動pch作成機能
 
 ## overview
-vimのカレントディレクトリに，`*.pch`が存在するときに，補完を行う
+* vimのカレントディレクトリに，`*.pch`が存在するときに，補完を行う
+* つまり，`*.pch`がない場合には何も行わない
 
 [Precompiled Header and Modules Internals — Clang 7 documentation]( https://clang.llvm.org/docs/PCHInternals.html )
 
