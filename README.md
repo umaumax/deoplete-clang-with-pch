@@ -23,9 +23,12 @@ Plug 'umaumax/deoplete-clang-with-pch', {'for': ['c','cpp','cmake']}
 
 ## setting example
 ```
+let g:deoplete#sources#clang_with_pch#flags = []
 let g:deoplete#sources#clang_with_pch#include_pathes = ['/usr/local/Cellar/llvm/6.0.0/include']
 let g:deoplete#sources#clang_with_pch#pch_pathes = []
 ```
+
+`g:deoplete#sources#clang_with_pch#flags`がないときは`g:deoplete#sources#clangflags`の値がしようされる
 
 ----
 

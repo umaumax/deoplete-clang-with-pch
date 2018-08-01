@@ -28,6 +28,10 @@ class Source(Base):
     def on_init(self, context):
         vars = context['vars']
 
+        tmp_flags = vars.get('deoplete#sources#clang#flags', [])
+        tmp_flags = vars.get('deoplete#sources#clang_with_pch#flags', tmp_flags)
+        # NOTE: drop flags
+        self.flags = list(filter(lambda x: not (x == '-fPIC' or x == '-fpic'), tmp_flags))
         self.include_pathes = vars.get('deoplete#sources#clang_with_pch#include_pathes', [])
         self.pch_pathes = vars.get('deoplete#sources#clang_with_pch#pch_pathes', [])
 
@@ -82,7 +86,7 @@ class Source(Base):
 
     def get_completion(self, line, column, buf):
         column += 1
-        # NOTE: delete means : no auto delete
+        # NOTE: delete:False means : no auto delete
         fp = tempfile.NamedTemporaryFile(mode='w+t', encoding='utf-8', suffix='.cpp', delete=False)
         fp.write(buf)
         fp.flush()
@@ -103,6 +107,7 @@ class Source(Base):
             ['-cc1'] + pch_cmds +\
             ['-fsyntax-only', '-code-completion-at=' + tmp_file_path + ':' + str(line) + ':' + str(column)] +\
             ['-std=c++11'] +\
+            self.flags +\
             [tmp_file_path]
 
         default_include_path = '.'
@@ -132,13 +137,11 @@ class Source(Base):
                 if ret:
                     result.append(ret)
         except subprocess.CalledProcessError as e:
-            # TODO: error handling
-            result = [
-                '__clang-parse-error__',
-                #                 e.returncode,
-                #                 e.cmd,
-                #                 e.output,
-            ]
+            log_fp = tempfile.NamedTemporaryFile(mode='w+t', encoding='utf-8', suffix='.log', delete=False)
+            log_fp.write(' '.join(e.cmd) + "\nexit code:" + str(e.returncode) + "\n")
+            log_fp.write(e.output.decode('utf-8'))
+            log_fp.close()
+            result = [{'dup': 1, 'word': log_fp.name, 'abbr': '', 'kind': '', 'menu': 'clang-with-pch parse error'}]
         fp.close()
         return result
 
