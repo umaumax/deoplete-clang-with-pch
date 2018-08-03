@@ -31,7 +31,18 @@ class Source(Base):
         tmp_flags = vars.get('deoplete#sources#clang#flags', [])
         tmp_flags = vars.get('deoplete#sources#clang_with_pch#flags', tmp_flags)
         # NOTE: drop flags
-        self.flags = list(filter(lambda x: not (x == '-fPIC' or x == '-fpic'), tmp_flags))
+        drop_pattern_list = [
+            '-fuse-ld=.*',
+            '-g1',
+            '-Wl,.*',
+            '-Wno.*',
+            '-fno-exceptions',
+            '-L.*',
+            '-l.*',
+            '-fPIC',
+            '-fpic',
+        ]
+        self.flags = list(filter(lambda x: x if len(list(filter(lambda pattern: re.compile(pattern).match(x), drop_pattern_list))) == 0 else None, tmp_flags))
         self.include_pathes = vars.get('deoplete#sources#clang_with_pch#include_pathes', [])
         self.pch_pathes = vars.get('deoplete#sources#clang_with_pch#pch_pathes', [])
 
