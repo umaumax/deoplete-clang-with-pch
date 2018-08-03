@@ -8,3 +8,6 @@ let g:deoplete#sources#clang_with_pch#include_pathes =
 
 let g:deoplete#sources#clang_with_pch#pch_pathes =
 			\ get(g:, 'deoplete#sources#clang_with_pch#pch_pathes', [])
+
+let g:deoplete#sources#clang_with_pch#flags =
+			\ get(g:, 'deoplete#sources#clang_with_pch#flags', [])
