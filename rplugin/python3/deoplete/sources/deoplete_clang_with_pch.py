@@ -76,10 +76,13 @@ class Source(Base):
         return m.start() if m else -1
 
     def parse_clang_output_line(self, line):
+        completion_prefix = 'COMPLETION: '
+        if completion_prefix not in line:
+            return None
         strip_left = (lambda text, prefix: text if not text.startswith(prefix) else text[len(prefix):])
         strip_right = (lambda text, suffix: text if not text.endswith(suffix) else text[:len(text) - len(suffix)])
         strip = (lambda text, prefix, suffix: strip_right(strip_left(text, prefix), suffix))
-        line = strip_left(line, 'COMPLETION: ')
+        line = strip_left(line, completion_prefix)
         line = strip_right(line, '\n')
         name = line.split(' : ')[0]
         name = strip_right(name, ' (HIDDEN)')
@@ -134,27 +137,41 @@ class Source(Base):
         strip_right = (lambda text, suffix: text if not text.endswith(suffix) else text[:len(text) - len(suffix)])
         strip_left = (lambda text, prefix: text if not text.startswith(prefix) else text[len(prefix):])
         result = []
+        error_result = []
         try:
             d = subprocess.check_output(
                 cmds,
                 stderr=subprocess.STDOUT,
                 shell=False)
+            binary_data = d
+            # e.g.
             # COMPLETION: Context() : [#clang::ASTContext *const#]
             # COMPLETION: MatchResult(const BoundNodes &Nodes, clang::ASTContext *Context) : [#MatchResult#]
             # COMPLETION: Nodes() : [#const BoundNodes#]
             # COMPLETION: SourceManager() : [#clang::SourceManager *const#]
-            for line in d.decode('utf-8').splitlines():
-                ret = self.parse_clang_output_line(line)
-                if ret:
-                    result.append(ret)
+#             for line in d.decode('utf-8').splitlines():
+#                 ret = self.parse_clang_output_line(line)
+#                 if ret:
+#                     result.append(ret)
         except subprocess.CalledProcessError as e:
             log_fp = tempfile.NamedTemporaryFile(mode='w+t', encoding='utf-8', suffix='.log', delete=False)
             log_fp.write(' '.join(e.cmd) + "\nexit code:" + str(e.returncode) + "\n")
             log_fp.write(e.output.decode('utf-8'))
             log_fp.close()
-            result = [{'dup': 1, 'word': log_fp.name, 'abbr': '', 'kind': '', 'menu': 'clang-with-pch parse error'}]
+            error_result = [{'dup': 1, 'word': log_fp.name, 'abbr': '<error log file path>', 'kind': '', 'menu': 'clang-with-pch parse error'}]
+            binary_data = e.output
         fp.close()
-        return result
+        # NOTE: 異常終了しても補完候補はリストアップされている
+        max_n = 256
+        n = 0
+        for line in binary_data.decode('utf-8').splitlines():
+            ret = self.parse_clang_output_line(line)
+            if ret:
+                result.append(ret)
+                n += 1
+                if len(result) >= max_n:
+                    break
+        return result + error_result
 
     def gather_candidates(self, context, refresh=False):
         if refresh and len(self.cache) > 0:

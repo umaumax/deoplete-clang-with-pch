@@ -28,7 +28,7 @@ let g:deoplete#sources#clang_with_pch#include_pathes = ['/usr/local/Cellar/llvm/
 let g:deoplete#sources#clang_with_pch#pch_pathes = []
 ```
 
-`g:deoplete#sources#clang_with_pch#flags`がないときは`g:deoplete#sources#clangflags`の値がしようされる
+`g:deoplete#sources#clang_with_pch#flags`がないときは`g:deoplete#sources#clangflags`の値が使用される
 
 ----
 
