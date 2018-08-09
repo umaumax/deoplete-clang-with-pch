@@ -11,3 +11,6 @@ let g:deoplete#sources#clang_with_pch#pch_pathes =
 
 let g:deoplete#sources#clang_with_pch#flags =
 			\ get(g:, 'deoplete#sources#clang_with_pch#flags', [])
+
+let g:deoplete#sources#clang_with_pch#max_completion_n =
+			\ get(g:, 'deoplete#sources#clang_with_pch#max_completion_n', 512)

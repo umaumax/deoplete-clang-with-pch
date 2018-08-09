@@ -45,6 +45,7 @@ class Source(Base):
         self.flags = list(filter(lambda x: x if len(list(filter(lambda pattern: re.compile(pattern).match(x), drop_pattern_list))) == 0 else None, tmp_flags))
         self.include_pathes = vars.get('deoplete#sources#clang_with_pch#include_pathes', [])
         self.pch_pathes = vars.get('deoplete#sources#clang_with_pch#pch_pathes', [])
+        self.max_completion_n = vars.get('deoplete#sources#clang_with_pch#max_completion_n', 512)
 
         try:
             # init(load suorce) only work
@@ -162,14 +163,14 @@ class Source(Base):
             binary_data = e.output
         fp.close()
         # NOTE: 異常終了しても補完候補はリストアップされている
-        max_n = 256
+        self.max_completion_n = 256
         n = 0
         for line in binary_data.decode('utf-8').splitlines():
             ret = self.parse_clang_output_line(line)
             if ret:
                 result.append(ret)
                 n += 1
-                if len(result) >= max_n:
+                if len(result) >= self.max_completion_n:
                     break
         return result + error_result
 
