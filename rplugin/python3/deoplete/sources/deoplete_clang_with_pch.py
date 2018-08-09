@@ -85,18 +85,30 @@ class Source(Base):
         strip = (lambda text, prefix, suffix: strip_right(strip_left(text, prefix), suffix))
         line = strip_left(line, completion_prefix)
         line = strip_right(line, '\n')
-        name = line.split(' : ')[0]
-        name = strip_right(name, ' (HIDDEN)')
-        m = re.search(r"(\[#.*?#\])(([^\[\]]|\[[^#])*)(\[#(.*)#\])?$", line)
-        ret = {}
+        name, info = line.split(' : ')
+        if '(HIDDEN)' in name:
+            return None
+        ret_type = ''
+        args_type = ''
+        method_source_info = ''
+        m = re.search(r"^\[#(.*?)#\]", info)
         if m:
-            ret_type = strip(m.group(1), '[#', '#]')
-            args_type = m.group(2)
-            args_type = args_type.replace('<#', '')
-            args_type = args_type.replace('#>', '')
-            method_source_info = strip(m.group(4) if m.group(4) else '', '[# ', '#]')
-            method_source_info = strip_right(method_source_info, ':' + name)
-            ret = {'dup': 1, 'word': name, 'abbr': args_type, 'kind': ret_type, 'menu': method_source_info}
+            ret_type = m.group(1)
+            info = strip_left(info, m.group(0))
+        m = re.search(r"^\[#(.*?)#\]", info)
+        if m:
+            # NOTE: I don't know well about this
+            method_source_info = m.group(1)
+            info = strip_left(info, m.group(0))
+        m = re.search(r"\[#(.*?)#\]$", info)
+        if m:
+            const_info = m.group(1)
+            info = strip_right(info, m.group(0))
+            method_source_info += (' ' if method_source_info != '' else '') + const_info
+        ret = {}
+        args_type = info.replace('<#', '').replace('#>', '')
+        method_source_info = strip_right(method_source_info, ':' + name)
+        ret = {'dup': 1, 'word': name, 'abbr': args_type, 'kind': ret_type, 'menu': method_source_info}
         return ret
 
     def get_completion(self, line, column, buf):
