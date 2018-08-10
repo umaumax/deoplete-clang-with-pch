@@ -111,7 +111,7 @@ class Source(Base):
         ret = {}
         args_type = info.replace('<#', '').replace('#>', '')
         method_source_info = strip_right(method_source_info, ':' + name)
-        ret = {'dup': 1, 'word': name, 'abbr': args_type, 'kind': ret_type, 'menu': method_source_info}
+        ret = {'dup': 1, 'word': name, 'abbr': args_type, 'kind': ret_type + ' ' + method_source_info}
         return ret
 
     def get_completion(self, line, column, buf):
