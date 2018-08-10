@@ -85,7 +85,10 @@ class Source(Base):
         strip = (lambda text, prefix, suffix: strip_right(strip_left(text, prefix), suffix))
         line = strip_left(line, completion_prefix)
         line = strip_right(line, '\n')
-        name, info = line.split(' : ')
+        outputs = line.split(' : ')
+        if len(outputs) <= 1:
+            return None
+        name, info = outputs[0], outputs[1]
         if '(HIDDEN)' in name:
             return None
         ret_type = ''
