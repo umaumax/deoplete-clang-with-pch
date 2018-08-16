@@ -134,8 +134,8 @@ class Source(Base):
 
         cmds = [] +\
             ['clang++'] +\
-            ['-cc1'] + pch_cmds +\
-            ['-fsyntax-only', '-code-completion-at=' + tmp_file_path + ':' + str(line) + ':' + str(column)] +\
+            pch_cmds +\
+            ['-fsyntax-only', '-Xclang', '-code-completion-at=' + tmp_file_path + ':' + str(line) + ':' + str(column)] +\
             ['-std=c++11'] +\
             self.flags +\
             [tmp_file_path]
