@@ -1,9 +1,9 @@
-import re
 from .base import Base
-import tempfile
-import os.path
-import subprocess
 from pathlib import Path
+import os.path
+import re
+import subprocess
+import tempfile
 
 
 class Source(Base):
@@ -122,8 +122,29 @@ class Source(Base):
         fp.flush()
         tmp_file_path = fp.name
 
-        p = Path(".")
-        pch_filepathes = p.glob("*.pch")
+        # NOTE: for <buffer dirpath>/*.pch
+        # NOTE: maybe equal to '.'
+        # filename = str(self.vim.current.buffer.name)
+        # dirname = os.path.dirname(filename)
+
+        # e.g. '/home/hogehoge/tmp/piyo.cpp' -> ['/home/hogehoge/tmp', '/home/hogehoge', '/home', '/']
+        def get_parent_pathes(filepath):
+            dirpath = filepath
+            l = []
+            while True:
+                dirpath = os.path.dirname(dirpath)
+                l += [dirpath]
+                if dirpath == '/':
+                    break
+            return l
+
+        pch_search_pathes = get_parent_pathes(os.path.abspath('.'))
+        pch_filepathes = []
+        for pch_search_path in pch_search_pathes:
+            p = Path(pch_search_path)
+            pch_filepathes += p.glob("*.pch")
+        print(pch_search_pathes)
+
         pch_cmds = []
         for pch_filepath in pch_filepathes:
             pch_cmds.extend(['-include-pch', str(pch_filepath)])
