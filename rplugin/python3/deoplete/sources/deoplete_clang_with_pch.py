@@ -143,7 +143,6 @@ class Source(Base):
         for pch_search_path in pch_search_pathes:
             p = Path(pch_search_path)
             pch_filepathes += p.glob("*.pch")
-        print(pch_search_pathes)
 
         pch_cmds = []
         for pch_filepath in pch_filepathes:
