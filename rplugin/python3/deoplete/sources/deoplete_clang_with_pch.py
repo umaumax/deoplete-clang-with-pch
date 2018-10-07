@@ -123,9 +123,9 @@ class Source(Base):
         tmp_file_path = fp.name
 
         # NOTE: for <buffer dirpath>/*.pch
-        # NOTE: maybe equal to '.'
-        # filename = str(self.vim.current.buffer.name)
-        # dirname = os.path.dirname(filename)
+        # NOTE: os.path.abspath('.') is vim wd (vim lcd doesn't change global wd only local wd)
+        filename = str(self.vim.current.buffer.name)
+        dirname = os.path.dirname(filename)
 
         # e.g. '/home/hogehoge/tmp/piyo.cpp' -> ['/home/hogehoge/tmp', '/home/hogehoge', '/home', '/']
         def get_parent_pathes(filepath):
@@ -138,11 +138,11 @@ class Source(Base):
                     break
             return l
 
-        pch_search_pathes = get_parent_pathes(os.path.abspath('.'))
+        pch_search_pathes = get_parent_pathes(filename)
         pch_filepathes = []
         for pch_search_path in pch_search_pathes:
             p = Path(pch_search_path)
-            pch_filepathes += list(map(lambda x: os.path.join(pch_search_path, x), p.glob('*.pch')))
+            pch_filepathes += list(map(lambda x: os.path.join(pch_search_path, str(x)), p.glob('*.pch')))
 
         pch_cmds = []
         for pch_filepath in pch_filepathes:
